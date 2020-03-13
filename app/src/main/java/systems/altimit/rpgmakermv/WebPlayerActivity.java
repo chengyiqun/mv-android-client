@@ -27,7 +27,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -36,6 +35,7 @@ import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import systems.altimit.rpgmakermv.utils.SavefileUtils;
+import systems.altimit.rpgmakermv.webengine.PlayerHelper;
 
 /**
  * Created by felixjones on 28/04/2017.
