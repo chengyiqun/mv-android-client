@@ -17,8 +17,8 @@
 apply plugin: 'com.android.application'
 
 // 统一管控app信息
-def myAppName = "为了和精灵大神官做HH的事情"
-def myApplicationId = "rpgmv.Elf.Priest.H"
+def myAppName = "测试xwalk兼容性"
+def myApplicationId = "chengyiqun.xwalk.compatible"
 def myVersionCode = 1
 def myVersionName = "1.0"
 // 存档导出保留多少份
