@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dateFormat">yyyyMMddHHmmss</string><!--存档导出文件夹的文件名按照日期排序的格式-->
+    <string name="saveFileSuffix">.rpgsave</string><!--固定-->
+    <string name="LocalStorageKeyPrefix">RPG</string>
+    <string name="toastSaveFileLocation">温馨提示: 存档在</string>
+    <string name="loadComplete">加载完毕</string>
+    <string name="importFolderCleaned">import文件夹存档已清空</string>
+    <string name="complete">完成</string>
+    <string name="whetherRestartGame">存档加载完毕, 是否重启游戏?</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+</resources>
