@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package systems.altimit.rpgmakermv.webengine;
+package systems.altimit.rpgmakermv;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -35,9 +35,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
-import systems.altimit.rpgmakermv.Player;
-import systems.altimit.rpgmakermv.WebPlayerActivity;
 
 /**
  * Created by felixjones on 28/04/2017.

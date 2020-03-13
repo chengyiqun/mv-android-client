@@ -35,7 +35,6 @@ import java.nio.charset.Charset;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import systems.altimit.rpgmakermv.utils.SavefileUtils;
-import systems.altimit.rpgmakermv.webengine.PlayerHelper;
 
 /**
  * Created by felixjones on 28/04/2017.

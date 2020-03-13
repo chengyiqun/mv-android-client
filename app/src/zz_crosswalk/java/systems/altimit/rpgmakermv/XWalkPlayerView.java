@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package systems.altimit.rpgmakermv.webengine;
+package systems.altimit.rpgmakermv;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -32,8 +32,6 @@ import org.xwalk.core.XWalkResourceClient;
 import org.xwalk.core.XWalkSettings;
 import org.xwalk.core.XWalkUIClient;
 import org.xwalk.core.XWalkView;
-
-import systems.altimit.rpgmakermv.Player;
 
 /**
  * Created by felixjones on 12/05/2017.

@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package systems.altimit.rpgmakermv.webengine;
+package systems.altimit.rpgmakermv;
 
 import android.content.Context;
-import android.os.Build;
-import android.widget.Toast;
 
 import org.xwalk.core.JavascriptInterface;
-
-import systems.altimit.rpgmakermv.Player;
 
 /**
  * Created by felixjones on 12/05/2017.
@@ -30,11 +26,6 @@ import systems.altimit.rpgmakermv.Player;
 public class PlayerHelper {
 
     public static Player create(Context context) {
-        // Android 7.0 and later use webview instead of xwalk
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Toast.makeText(context,"Android 7.0 and later use webview instead of xwalk",Toast.LENGTH_SHORT).show();
-            return new WebPlayerView(context).getPlayer();
-        }
         return new XWalkPlayerView(context).getPlayer();
     }
 

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package systems.altimit.rpgmakermv.webengine;
+package systems.altimit.rpgmakermv;
 
 import android.content.Context;
 import android.webkit.JavascriptInterface;
-
-import systems.altimit.rpgmakermv.Player;
 
 /**
  * Created by felixjones on 12/05/2017.
