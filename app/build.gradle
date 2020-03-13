@@ -69,7 +69,7 @@ android {
     productFlavors {
         webview {
             dimension "mv_android_client"
-            minSdkVersion 14 // 19
+            minSdkVersion 19 // I suggest that android 4.4 and later use webview
 
             buildConfigField "boolean", "BOOTSTRAP_INTERFACE", "true"
         }
