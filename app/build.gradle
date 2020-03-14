@@ -78,7 +78,7 @@ android {
         zz_crosswalk {
             dimension "mv_android_client"
             minSdkVersion 16
-
+            targetSdkVersion 23
             buildConfigField "boolean", "BOOTSTRAP_INTERFACE", "true"
         }
     }
