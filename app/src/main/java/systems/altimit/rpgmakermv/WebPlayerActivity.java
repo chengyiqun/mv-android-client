@@ -19,19 +19,26 @@ package systems.altimit.rpgmakermv;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.Instrumentation;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Base64;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 
 import java.io.File;
+import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import systems.altimit.rpgmakermv.utils.SavefileUtils;
@@ -43,6 +50,7 @@ public class WebPlayerActivity extends Activity {
 
     private static final String TOUCH_INPUT_ON_CANCEL = "TouchInput._onCancel();";
     private final static AtomicBoolean gameLoaded = new AtomicBoolean();
+    private final static AtomicBoolean gameEnded = new AtomicBoolean();
 
     private Player mPlayer;
     private AlertDialog mQuitDialog;
@@ -85,6 +93,8 @@ public class WebPlayerActivity extends Activity {
             mPlayer.loadUrl(projectURIBuilder.build().toString());
             gameLoaded.set(true);
         }
+        // 启动监听按键
+        keyEventThread.start();
     }
 
     @Override
@@ -173,6 +183,7 @@ public class WebPlayerActivity extends Activity {
             // delete import folder when quit games
             SavefileUtils.deleteImportDir();
         }
+        gameEnded.set(true);
     }
 
     @Override
@@ -293,5 +304,77 @@ public class WebPlayerActivity extends Activity {
         }
 
     }
+
+    // // 音量键模拟上下 监听
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (BuildConfig.VOLUME_AS_ARROW) {
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                try {
+                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_UP));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                try {
+                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_DOWN));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    public boolean onKeyLongPress(int keyCode, KeyEvent event) { if (BuildConfig.VOLUME_AS_ARROW) { if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) return true;if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) return true; }return super.onKeyLongPress(keyCode, event); }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (BuildConfig.VOLUME_AS_ARROW) {
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+                try {
+                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DPAD_UP));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                try {
+                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DPAD_DOWN));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+        }
+        return super.onKeyUp(keyCode, event);
+    }
+
+    // 音量键模拟上下 处理
+    private final LinkedBlockingQueue<KeyEvent> linkedBlockingQueue = new LinkedBlockingQueue<>();
+    private Thread keyEventThread = new Thread () {
+        public void run () {
+            Instrumentation inst=new Instrumentation();
+            while (true) {
+                try {
+                    KeyEvent keyEvent = linkedBlockingQueue.take();
+                    if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
+                        Thread.sleep(50);
+                    }
+                    inst.sendKeySync(keyEvent);
+                } catch(Exception e) {
+                    Log.e("sendKeyDownUpSync", e.toString());
+                }
+                if (gameEnded.get()) {
+                    break;
+                }
+            }
+        }
+    };
 
 }

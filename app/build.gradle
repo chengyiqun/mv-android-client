@@ -17,8 +17,9 @@
 apply plugin: 'com.android.application'
 
 // 统一管控app信息
-def myAppName = "测试xwalk兼容性"
-def myApplicationId = "chengyiqun.xwalk.compatible"
+def VOLUME_AS_ARROW     = true // 音量控制上下
+def myAppName = "公主大人才不会认输呢 -国家统一冒险传-"
+def myApplicationId = "rpgmv.Princesses.Never.Lose"
 def myVersionCode = 1
 def myVersionName = "1.0"
 // 存档导出保留多少份
@@ -56,6 +57,7 @@ android {
             buildType.buildConfigField "boolean",  "SHOW_FPS",          String.valueOf(SHOW_FPS)
             buildType.buildConfigField "boolean",  "FORCE_CANVAS",      String.valueOf(FORCE_CANVAS)
             buildType.buildConfigField "boolean",  "FORCE_NO_AUDIO",    String.valueOf(FORCE_NO_AUDIO)
+            buildType.buildConfigField "boolean",  "VOLUME_AS_ARROW",    String.valueOf(VOLUME_AS_ARROW)
 
             buildType.buildConfigField "Integer",  "SAVE_FILE_EXPORT_NUM",    String.valueOf(saveFileExportNum)
 
