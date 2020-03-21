@@ -360,20 +360,22 @@ public class WebPlayerActivity extends Activity {
     private final LinkedBlockingQueue<KeyEvent> linkedBlockingQueue = new LinkedBlockingQueue<>();
     private Thread keyEventThread = new Thread () {
         public void run () {
-            Instrumentation inst=new Instrumentation();
-            //noinspection ConditionalBreakInInfiniteLoop
-            while (true) {
-                try {
-                    KeyEvent keyEvent = linkedBlockingQueue.take();
-                    if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
-                        Thread.sleep(50);
+            if (BuildConfig.VOLUME_AS_ARROW) {
+                Instrumentation inst=new Instrumentation();
+                //noinspection ConditionalBreakInInfiniteLoop
+                while (true) {
+                    try {
+                        KeyEvent keyEvent = linkedBlockingQueue.take();
+                        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
+                            Thread.sleep(50);
+                        }
+                        inst.sendKeySync(keyEvent);
+                    } catch(Exception e) {
+                        Log.e("sendKeyDownUpSync", e.toString());
                     }
-                    inst.sendKeySync(keyEvent);
-                } catch(Exception e) {
-                    Log.e("sendKeyDownUpSync", e.toString());
-                }
-                if (gameEnded.get()) {
-                    break;
+                    if (gameEnded.get()) {
+                        break;
+                    }
                 }
             }
         }
