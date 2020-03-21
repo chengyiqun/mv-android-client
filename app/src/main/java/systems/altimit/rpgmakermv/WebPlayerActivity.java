@@ -60,6 +60,7 @@ public class WebPlayerActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         gameLoaded.set(false);
+        gameEnded.set(false);
         super.onCreate(savedInstanceState);
         if (BuildConfig.BACK_BUTTON_QUITS) {
             createQuitDialog();
