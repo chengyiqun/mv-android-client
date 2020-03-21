@@ -360,6 +360,7 @@ public class WebPlayerActivity extends Activity {
     private Thread keyEventThread = new Thread () {
         public void run () {
             Instrumentation inst=new Instrumentation();
+            //noinspection ConditionalBreakInInfiniteLoop
             while (true) {
                 try {
                     KeyEvent keyEvent = linkedBlockingQueue.take();
