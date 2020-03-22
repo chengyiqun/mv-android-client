@@ -38,8 +38,11 @@ android {
     // Android 9+ "Q" API 29
     def ANDROID_SDK_TARGET  = 29
 
-    defaultConfig {
+    dexOptions {
+        incremental true
+    }
 
+    defaultConfig {
         /**
          * Project Identification
          */
@@ -53,6 +56,7 @@ android {
 
     buildTypes {
         buildTypes.each { buildType ->
+            buildType.crunchPngs false // Disables PNG crunching for the release build type.
             buildType.buildConfigField "boolean",  "BACK_BUTTON_QUITS", String.valueOf(BACK_BUTTON_QUITS)
             buildType.buildConfigField "boolean",  "SHOW_FPS",          String.valueOf(SHOW_FPS)
             buildType.buildConfigField "boolean",  "FORCE_CANVAS",      String.valueOf(FORCE_CANVAS)
