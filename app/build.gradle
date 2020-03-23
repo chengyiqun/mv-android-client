@@ -38,10 +38,6 @@ android {
     // Android 9+ "Q" API 29
     def ANDROID_SDK_TARGET  = 29
 
-    dexOptions {
-        incremental true
-    }
-
     defaultConfig {
         /**
          * Project Identification
