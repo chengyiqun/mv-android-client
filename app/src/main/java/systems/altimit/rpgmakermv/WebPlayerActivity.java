@@ -56,7 +56,7 @@ public class WebPlayerActivity extends Activity {
     private static volatile long lastVolumeDownKeyDownTimeMs;
     private static volatile boolean volumeUpKeyPressed;
     private static volatile boolean volumeDownKeyPressed;
-    private static final long longPressTimeOutMs = 50; //50ms
+    private static final long longPressTimeOutMs = 25; //50ms
     Vibrator vibrator; // 震动马达
 
     private Player mPlayer;
@@ -415,7 +415,7 @@ public class WebPlayerActivity extends Activity {
                     try {
                         int keyCode = keyCodeBlockingQueue.take();
                         // 震动8毫秒
-                        vibrator.vibrate(6);
+                        vibrator.vibrate(4);
                         inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_DOWN,keyCode));
                         Thread.sleep(80);
                         inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_UP,keyCode));
