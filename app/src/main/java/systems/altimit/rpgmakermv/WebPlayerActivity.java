@@ -20,23 +20,24 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.Instrumentation;
+import android.app.Service;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
+import android.os.Vibrator;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
+import android.view.Surface;
 import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
 import java.nio.charset.Charset;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,17 +51,27 @@ public class WebPlayerActivity extends Activity {
 
     private static final String TOUCH_INPUT_ON_CANCEL = "TouchInput._onCancel();";
     private final static AtomicBoolean gameLoaded = new AtomicBoolean();
-    private final static AtomicBoolean gameEnded = new AtomicBoolean();
+    private static boolean runningFlag = false;
+    private static volatile long lastVolumeUpKeyDownTimeMs;// ms
+    private static volatile long lastVolumeDownKeyDownTimeMs;
+    private static volatile boolean volumeUpKeyPressed;
+    private static volatile boolean volumeDownKeyPressed;
+    private static final long longPressTimeOutMs = 50; //50ms
+    Vibrator vibrator; // 震动马达
 
     private Player mPlayer;
     private AlertDialog mQuitDialog;
     private int mSystemUiVisibility;
 
-    @SuppressLint("ObsoleteSdkInt")
+    private Display display;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         gameLoaded.set(false);
-        gameEnded.set(false);
+        runningFlag = true;
+        vibrator = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
+
+
         super.onCreate(savedInstanceState);
         if (BuildConfig.BACK_BUTTON_QUITS) {
             createQuitDialog();
@@ -78,6 +89,8 @@ public class WebPlayerActivity extends Activity {
                 mSystemUiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
             }
         }
+
+        display = getWindowManager().getDefaultDisplay();
 
         mPlayer = PlayerHelper.create(this);
 
@@ -184,7 +197,7 @@ public class WebPlayerActivity extends Activity {
             // delete import folder when quit games
             SavefileUtils.deleteImportDir();
         }
-        gameEnded.set(true);
+        runningFlag = false;
     }
 
     @Override
@@ -306,23 +319,21 @@ public class WebPlayerActivity extends Activity {
 
     }
 
-    // // 音量键模拟上下 监听
+    // 记录音量键按下的时间
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (BuildConfig.VOLUME_AS_ARROW) {
             if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-                try {
-                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_UP));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (!volumeUpKeyPressed) {
+                    volumeUpKeyPressed = true;
+                    lastVolumeUpKeyDownTimeMs = System.currentTimeMillis();
                 }
                 return true;
             }
             if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-                try {
-                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_DOWN,KeyEvent.KEYCODE_DPAD_DOWN));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (!volumeDownKeyPressed) {
+                    volumeDownKeyPressed = true;
+                    lastVolumeDownKeyDownTimeMs = System.currentTimeMillis();
                 }
                 return true;
             }
@@ -330,25 +341,62 @@ public class WebPlayerActivity extends Activity {
         return super.onKeyDown(keyCode, event);
     }
 
-    @Override
-    public boolean onKeyLongPress(int keyCode, KeyEvent event) { if (BuildConfig.VOLUME_AS_ARROW) { if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) return true;if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) return true; }return super.onKeyLongPress(keyCode, event); }
-
+    // 长按音量键发送左右, 并识别屏幕方向
+    // 当按键松开时, 如果是短按, 那么发送方向键上下
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (BuildConfig.VOLUME_AS_ARROW) {
             if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
-                try {
-                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DPAD_UP));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                volumeUpKeyPressed = false;
+                long volumeUpKeyUpTimeNs = System.currentTimeMillis();
+                if (volumeUpKeyUpTimeNs - lastVolumeUpKeyDownTimeMs < longPressTimeOutMs) {
+                    System.err.println(volumeUpKeyUpTimeNs - lastVolumeUpKeyDownTimeMs);
+                    try {
+                        keyCodeBlockingQueue.put(KeyEvent.KEYCODE_DPAD_UP);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {// 长按
+                    int rotation = display.getRotation();
+                    if (Surface.ROTATION_90 == rotation) {
+                        try {
+                            keyCodeBlockingQueue.put(KeyEvent.KEYCODE_DPAD_LEFT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (Surface.ROTATION_270 == rotation) {
+                        try {
+                            keyCodeBlockingQueue.put(KeyEvent.KEYCODE_DPAD_RIGHT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
                 return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-                try {
-                    linkedBlockingQueue.put(new KeyEvent(KeyEvent.ACTION_UP,KeyEvent.KEYCODE_DPAD_DOWN));
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+            } else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                volumeDownKeyPressed = false;
+                long volumeDownKeyUpTimeNs = System.currentTimeMillis();
+                if (volumeDownKeyUpTimeNs - lastVolumeDownKeyDownTimeMs < longPressTimeOutMs) {
+                    try {
+                        keyCodeBlockingQueue.put(KeyEvent.KEYCODE_DPAD_DOWN);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                } else {// 长按
+                    int rotation = display.getRotation();
+                    if (Surface.ROTATION_90 == rotation) {
+                        try {
+                            keyCodeBlockingQueue.put(KeyEvent.KEYCODE_DPAD_RIGHT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (Surface.ROTATION_270 == rotation) {
+                        try {
+                            keyCodeBlockingQueue.put(KeyEvent.KEYCODE_DPAD_LEFT);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
                 return true;
             }
@@ -356,25 +404,23 @@ public class WebPlayerActivity extends Activity {
         return super.onKeyUp(keyCode, event);
     }
 
-    // 音量键模拟上下 处理
-    private final LinkedBlockingQueue<KeyEvent> linkedBlockingQueue = new LinkedBlockingQueue<>();
+    // 音量键模拟的按键 处理线程
+    private final LinkedBlockingQueue<Integer> keyCodeBlockingQueue = new LinkedBlockingQueue<>();
     private Thread keyEventThread = new Thread () {
         public void run () {
             if (BuildConfig.VOLUME_AS_ARROW) {
                 Instrumentation inst=new Instrumentation();
-                //noinspection ConditionalBreakInInfiniteLoop
-                while (true) {
+                //noinspection ConstantConditions
+                while (runningFlag && BuildConfig.VOLUME_AS_ARROW) {
                     try {
-                        KeyEvent keyEvent = linkedBlockingQueue.take();
-                        if (keyEvent.getAction() == KeyEvent.ACTION_UP) {
-                            Thread.sleep(50);
-                        }
-                        inst.sendKeySync(keyEvent);
+                        int keyCode = keyCodeBlockingQueue.take();
+                        // 震动8毫秒
+                        vibrator.vibrate(6);
+                        inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_DOWN,keyCode));
+                        Thread.sleep(80);
+                        inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_UP,keyCode));
                     } catch(Exception e) {
                         Log.e("sendKeyDownUpSync", e.toString());
-                    }
-                    if (gameEnded.get()) {
-                        break;
                     }
                 }
             }
