@@ -308,6 +308,10 @@ public class WebPlayerActivity extends Activity {
                     mURIBuilder = Uri.fromFile(new File(context.getString(R.string.mv_project_index))).buildUpon();
                     mPlayer.loadData(context.getString(R.string.webview_default_page));
                 }
+            } else {
+                String obbPath = storageManager.getMountedObbPath(mainFile.getAbsolutePath());
+                mURIBuilder = Uri.fromFile(new File(obbPath + context.getString(R.string.mv_project_index_obb))).buildUpon();
+                mPlayer.loadData(context.getString(R.string.webview_default_page));
             }
         }
 
