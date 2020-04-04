@@ -17,9 +17,9 @@
 apply plugin: 'com.android.application'
 
 // 统一管控app信息
-def VOLUME_AS_ARROW     = true // 音量控制上下
-def myAppName = "公主大人才不会认输呢 -国家统一冒险传-"
-def myApplicationId = "rpgmv.Princesses.Never.Lose"
+def VOLUME_AS_ARROW     = false // 音量控制上下
+def myAppName = "蒸汽之都的少女侦探"
+def myApplicationId = "rpgmv.detective.girl.of.the.steam.city"
 def myVersionCode = 1
 def myVersionName = "1.0"
 // 存档导出保留多少份
@@ -71,17 +71,14 @@ android {
     productFlavors {
         webview {
             dimension "mv_android_client"
-            minSdkVersion 14 // 19
-
-            buildConfigField "boolean", "BOOTSTRAP_INTERFACE", "true"
+            minSdkVersion 19 // 19 是安卓4.4 // 14
         }
 
         // WARNING: As of February 2017 Crosswalk is no longer maintained https://crosswalk-project.org/blog/crosswalk-final-release.html
         zz_crosswalk {
             dimension "mv_android_client"
-            minSdkVersion 16
+            minSdkVersion 19  // 16
             targetSdkVersion 23
-            buildConfigField "boolean", "BOOTSTRAP_INTERFACE", "true"
         }
     }
 }

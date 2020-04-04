@@ -27,7 +27,10 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Vibrator;
+import android.os.storage.OnObbStateChangeListener;
+import android.os.storage.StorageManager;
 import android.util.Base64;
 import android.util.Log;
 import android.view.Display;
@@ -65,12 +68,15 @@ public class WebPlayerActivity extends Activity {
 
     private Display display;
 
+    private StorageManager storageManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         gameLoaded.set(false);
         runningFlag = true;
         vibrator = (Vibrator) getSystemService(Service.VIBRATOR_SERVICE);
-
+        storageManager = (StorageManager) getApplicationContext()
+                .getSystemService(Context.STORAGE_SERVICE);
 
         super.onCreate(savedInstanceState);
         if (BuildConfig.BACK_BUTTON_QUITS) {
@@ -79,16 +85,16 @@ public class WebPlayerActivity extends Activity {
 
         mSystemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN;
-            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                mSystemUiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-            }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
         }
+//        }
 
         display = getWindowManager().getDefaultDisplay();
 
@@ -98,15 +104,7 @@ public class WebPlayerActivity extends Activity {
 
         setContentView(mPlayer.getView());
 
-        if (!addBootstrapInterface(mPlayer)) {
-            Uri.Builder projectURIBuilder = Uri.fromFile(new File(getString(R.string.mv_project_index))).buildUpon();
-            Bootstrapper.appendQuery(projectURIBuilder, getString(R.string.query_noaudio));
-            if (BuildConfig.SHOW_FPS) {
-                Bootstrapper.appendQuery(projectURIBuilder, getString(R.string.query_showfps));
-            }
-            mPlayer.loadUrl(projectURIBuilder.build().toString());
-            gameLoaded.set(true);
-        }
+        new Bootstrapper(mPlayer);
         // 启动监听按键
         keyEventThread.start();
     }
@@ -243,28 +241,19 @@ public class WebPlayerActivity extends Activity {
         }
     }
 
-    @SuppressLint("ObsoleteSdkInt")
-    private static boolean addBootstrapInterface(Player player) {
-        if (BuildConfig.BOOTSTRAP_INTERFACE && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            new Bootstrapper(player);
-            return true;
+    private Uri.Builder appendQuery(Uri.Builder builder, String query) {
+        Uri current = builder.build();
+        String oldQuery = current.getEncodedQuery();
+        if (oldQuery != null && oldQuery.length() > 0) {
+            query = oldQuery + "&" + query;
         }
-        return false;
+        return builder.encodedQuery(query);
     }
 
     /**
      *
      */
-    private static final class Bootstrapper extends PlayerHelper.Interface implements Runnable {
-
-        private static Uri.Builder appendQuery(Uri.Builder builder, String query) {
-            Uri current = builder.build();
-            String oldQuery = current.getEncodedQuery();
-            if (oldQuery != null && oldQuery.length() > 0) {
-                query = oldQuery + "&" + query;
-            }
-            return builder.encodedQuery(query);
-        }
+    private final class Bootstrapper extends PlayerHelper.Interface implements Runnable {
 
         private static final String INTERFACE = "boot";
         private static final String PREPARE_FUNC = "prepare( webgl(), webaudio(), false )";
@@ -273,12 +262,53 @@ public class WebPlayerActivity extends Activity {
         private Uri.Builder mURIBuilder;
 
         private Bootstrapper(Player player) {
-            Context context = player.getContext();
+            final Context context = player.getContext();
             player.addJavascriptInterface(this, Bootstrapper.INTERFACE);
 
             mPlayer = player;
-            mURIBuilder = Uri.fromFile(new File(context.getString(R.string.mv_project_index))).buildUpon();
-            mPlayer.loadData(context.getString(R.string.webview_default_page));
+
+            String packageName = BuildConfig.APPLICATION_ID;
+            String filePath = Environment.getExternalStorageDirectory()
+                    + "/Android/obb/" + packageName + "/" + "main."
+                    + BuildConfig.VERSION_CODE + "." + packageName + ".obb";
+            final File mainFile = new File(filePath);
+            if (mainFile.exists()) {
+                Log.d("STORAGE", "FILE: " + filePath + " Exists");
+            } else {
+                Log.d("STORAGE", "FILE: " + filePath + " DOESNT EXIST");
+            }
+
+            final String key = null;
+            if (!storageManager.isObbMounted(mainFile.getAbsolutePath())) {
+                if (mainFile.exists()) {
+                    if (storageManager.mountObb(mainFile.getAbsolutePath(), key,
+                            new OnObbStateChangeListener() {
+                                @Override
+                                public void onObbStateChange(String path, int state) {
+                                    super.onObbStateChange(path, state);
+                                    Log.d("PATH = ", path);
+                                    Log.d("STATE = ", state + "");
+                                    if (state == OnObbStateChangeListener.MOUNTED) {
+                                        Log.d("STORAGE", "-->MOUNTED");
+                                        String obbPath = storageManager.getMountedObbPath(path);
+                                        mURIBuilder = Uri.fromFile(new File(obbPath + context.getString(R.string.mv_project_index_obb))).buildUpon();
+                                    } else {
+                                        Log.d("##", "Path: " + path + "; state: " + state);
+                                        mURIBuilder = Uri.fromFile(new File(context.getString(R.string.mv_project_index))).buildUpon();
+                                    }
+                                    mPlayer.loadData(context.getString(R.string.webview_default_page));
+                                }
+                            })) {
+                        Log.d("STORAGE_MNT", "SUCCESSFULLY QUEUED");
+                    } else {
+                        Log.d("STORAGE_MNT", "FAILED");
+                    }
+                } else {
+                    Log.d("STORAGE", "Patch file not found");
+                    mURIBuilder = Uri.fromFile(new File(context.getString(R.string.mv_project_index))).buildUpon();
+                    mPlayer.loadData(context.getString(R.string.webview_default_page));
+                }
+            }
         }
 
         @Override
@@ -406,20 +436,22 @@ public class WebPlayerActivity extends Activity {
 
     // 音量键模拟的按键 处理线程
     private final LinkedBlockingQueue<Integer> keyCodeBlockingQueue = new LinkedBlockingQueue<>();
-    private Thread keyEventThread = new Thread () {
-        public void run () {
+    private Thread keyEventThread = new Thread() {
+        public void run() {
             if (BuildConfig.VOLUME_AS_ARROW) {
-                Instrumentation inst=new Instrumentation();
+                @SuppressWarnings("UnusedAssignment")
+                Instrumentation inst = new Instrumentation();
                 //noinspection ConstantConditions
                 while (runningFlag && BuildConfig.VOLUME_AS_ARROW) {
                     try {
+                        @SuppressWarnings("UnusedAssignment")
                         int keyCode = keyCodeBlockingQueue.take();
                         // 震动8毫秒
                         vibrator.vibrate(4);
-                        inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_DOWN,keyCode));
+                        inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_DOWN, keyCode));
                         Thread.sleep(80);
-                        inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_UP,keyCode));
-                    } catch(Exception e) {
+                        inst.sendKeySync(new KeyEvent(KeyEvent.ACTION_UP, keyCode));
+                    } catch (Exception e) {
                         Log.e("sendKeyDownUpSync", e.toString());
                     }
                 }

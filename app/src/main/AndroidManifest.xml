@@ -18,6 +18,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="systems.altimit.rpgmakermv">
     <uses-permission android:name="android.permission.VIBRATE"/>
+<!--    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />-->
     <application
         android:name="systems.altimit.rpgmakermv.MyApplication"
         android:label="${my_app_name}"
