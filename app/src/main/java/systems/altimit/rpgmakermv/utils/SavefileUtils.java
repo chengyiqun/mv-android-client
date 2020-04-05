@@ -57,7 +57,7 @@ public class SavefileUtils {
         if (index != -1) {
             path = context.getString(R.string.internalStorage) + path.substring(index);
         }
-        AppCompatDialog dialog = new AlertDialog.Builder(context,R.style.Theme_AppCompat_Dialog)
+        AppCompatDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(context.getString(R.string.toastSaveFileLocation))
                 .setMessage(path+"\n\n"+context.getString(R.string.explanImportExport))
                 .setPositiveButton(context.getString(R.string.complete), new DialogInterface.OnClickListener() {
