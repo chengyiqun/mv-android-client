@@ -49,33 +49,6 @@ public class SavefileUtils {
     }
 
     /**
-     * @param context activity
-     */
-    public static void showMsgDialog(Activity context) {
-        String path = Objects.requireNonNull(context.getExternalCacheDir()).getPath();
-        int index = path.indexOf("/Android/data");
-        if (index != -1) {
-            path = context.getString(R.string.internalStorage) + path.substring(index);
-        }
-        AppCompatDialog dialog = new AlertDialog.Builder(context)
-                .setTitle(context.getString(R.string.toastSaveFileLocation))
-                .setMessage(path+"\n\n"+context.getString(R.string.explanImportExport))
-                .setPositiveButton(context.getString(R.string.complete), new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                })
-                .setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogInterface dialog) {
-                        dialog.dismiss();
-                    }
-                })
-                .create();
-        dialog.show();
-    }
-    /**
      * export android rpgmv savefiles into private folder
      *
      * @param player webView player

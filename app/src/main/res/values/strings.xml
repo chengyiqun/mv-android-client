@@ -7,10 +7,10 @@
     <string name="loadComplete">加载完毕</string>
     <string name="importFolderCleaned">import文件夹存档已清空</string>
     <string name="complete">完成</string>
-    <string name="whetherRestartGame">存档加载完毕, 是否重启游戏?</string>
+    <string name="whetherRestartGame">存档加载完毕, 是否重启游戏? \n等待下方横条消失后重启游戏</string>
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="clear_save_file_msg">已清理存档</string>
     <string name="internalStorage">内置存储</string>
-    <string name="explanImportExport">其中import是导入, export是导出\n可与同版本pc版互通存档</string>
+    <string name="explanImportExport">其中import是导入, export是导出\n可与同版本pc版互通存档\n请在游戏加载完毕后, 切换后台操作文件</string>
 </resources>

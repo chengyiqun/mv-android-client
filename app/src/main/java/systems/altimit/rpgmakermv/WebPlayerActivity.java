@@ -41,10 +41,13 @@ import androidx.appcompat.app.AlertDialog;
 
 import java.io.File;
 import java.nio.charset.Charset;
+import java.util.Objects;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import systems.altimit.rpgmakermv.utils.SavefileUtils;
+
+import static systems.altimit.rpgmakermv.MyApplication.restarted;
 
 /**
  * Created by felixjones on 28/04/2017.
@@ -60,6 +63,8 @@ public class WebPlayerActivity extends Activity {
     private static volatile boolean volumeDownKeyPressed;
     private static final long longPressTimeOutMs = 25; //50ms
     Vibrator vibrator; // 震动马达
+
+    Dialog saveFileHelpDialog = null;
 
     private Player mPlayer;
     private AlertDialog mQuitDialog;
@@ -155,12 +160,16 @@ public class WebPlayerActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (gameLoaded.get()) {
                 if (SavefileUtils.importSavefiles(mPlayer)) {
+                    if (saveFileHelpDialog != null) {
+                        saveFileHelpDialog.dismiss();
+                    }
                     Dialog dialog = new AlertDialog.Builder(this)
                             .setTitle(getString(R.string.complete))
                             .setMessage(getString(R.string.whetherRestartGame))
                             .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    restarted = true;
                                     SavefileUtils.cleanImportDir();
                                     // restart Activity
                                     Intent intent = new Intent(getApplicationContext(), WebPlayerActivity.class);
@@ -183,7 +192,25 @@ public class WebPlayerActivity extends Activity {
                     dialog.show();
                 }
             } else {
-                SavefileUtils.showMsgDialog(this);
+                if (!restarted) {
+                    String path = Objects.requireNonNull(getExternalCacheDir()).getPath();
+                    int index = path.indexOf("/Android/data");
+                    if (index != -1) {
+                        path = getString(R.string.internalStorage) + path.substring(index);
+                    }
+                    saveFileHelpDialog = new AlertDialog.Builder(this)
+                            .setTitle(getString(R.string.toastSaveFileLocation))
+                            .setMessage(path+"\n\n"+getString(R.string.explanImportExport))
+                            .setPositiveButton(getString(R.string.complete), new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                }
+                            })
+                            .setCancelable(false)
+                            .create();
+                    saveFileHelpDialog.show();
+                }
             }
         }
     }

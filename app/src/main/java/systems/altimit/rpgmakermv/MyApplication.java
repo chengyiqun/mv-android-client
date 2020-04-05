@@ -7,6 +7,7 @@ import android.os.Build;
 import systems.altimit.rpgmakermv.utils.SavefileUtils;
 
 public class MyApplication extends Application {
+    public static boolean restarted = false;
     private Context context;
     @Override
     public void onCreate() {
