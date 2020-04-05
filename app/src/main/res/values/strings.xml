@@ -12,4 +12,5 @@
     <string name="no">否</string>
     <string name="clear_save_file_msg">已清理存档</string>
     <string name="internalStorage">内置存储</string>
+    <string name="explanImportExport">其中import是导入, export是导出</string>
 </resources>

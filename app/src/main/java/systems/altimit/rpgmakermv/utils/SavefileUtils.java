@@ -59,7 +59,7 @@ public class SavefileUtils {
         }
         AppCompatDialog dialog = new AlertDialog.Builder(context,R.style.Theme_AppCompat_Dialog)
                 .setTitle(context.getString(R.string.toastSaveFileLocation))
-                .setMessage(path)
+                .setMessage(path+"\n\n"+context.getString(R.string.explanImportExport))
                 .setPositiveButton(context.getString(R.string.complete), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
