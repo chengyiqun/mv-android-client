@@ -10,5 +10,6 @@
     <string name="whetherRestartGame">存档加载完毕, 是否重启游戏?</string>
     <string name="yes">是</string>
     <string name="no">否</string>
-    <string name="clear_save_file_msg">以清理存档</string>
+    <string name="clear_save_file_msg">已清理存档</string>
+    <string name="internalStorage">内置存储</string>
 </resources>

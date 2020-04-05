@@ -16,7 +16,6 @@
 
 package systems.altimit.rpgmakermv;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.Instrumentation;
@@ -183,6 +182,8 @@ public class WebPlayerActivity extends Activity {
                             }).create();
                     dialog.show();
                 }
+            } else {
+                SavefileUtils.showMsgDialog(this);
             }
         }
     }

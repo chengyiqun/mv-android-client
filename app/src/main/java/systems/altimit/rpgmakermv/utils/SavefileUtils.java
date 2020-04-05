@@ -1,13 +1,16 @@
 package systems.altimit.rpgmakermv.utils;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.ValueCallback;
-import android.webkit.WebStorage;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatDialog;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -21,6 +24,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
+import java.util.Objects;
 
 import systems.altimit.rpgmakermv.BuildConfig;
 import systems.altimit.rpgmakermv.Player;
@@ -44,6 +48,33 @@ public class SavefileUtils {
         SavefileUtils.appContext = appContext;
     }
 
+    /**
+     * @param context activity
+     */
+    public static void showMsgDialog(Activity context) {
+        String path = Objects.requireNonNull(context.getExternalCacheDir()).getPath();
+        int index = path.indexOf("/Android/data");
+        if (index != -1) {
+            path = context.getString(R.string.internalStorage) + path.substring(index);
+        }
+        AppCompatDialog dialog = new AlertDialog.Builder(context,R.style.Theme_AppCompat_Dialog)
+                .setTitle(context.getString(R.string.toastSaveFileLocation))
+                .setMessage(path)
+                .setPositiveButton(context.getString(R.string.complete), new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+        dialog.show();
+    }
     /**
      * export android rpgmv savefiles into private folder
      *
@@ -94,7 +125,7 @@ public class SavefileUtils {
      */
     private static void writeSaveFiles(String dateStr, String fileSimpleName, String content) {
         // String to file
-        File externalFilesDir = appContext.getExternalFilesDir(null);
+        File externalFilesDir = appContext.getExternalCacheDir();
         Log.d(TAG, "fileSimpleName = " + fileSimpleName);
         Log.d(TAG, "content = " + content);
         assert externalFilesDir != null;
@@ -117,7 +148,7 @@ public class SavefileUtils {
         if (num < 1) {
             num = 1;
         }
-        File externalFilesDir = appContext.getExternalFilesDir(null);
+        File externalFilesDir = appContext.getExternalCacheDir();
         assert externalFilesDir != null;
         File exportDir = new File(externalFilesDir.getPath() + "/export/");
         Collection<File> files = FileUtils.listFilesAndDirs(exportDir, DirectoryFileFilter.DIRECTORY, DirectoryFileFilter.DIRECTORY);
@@ -140,7 +171,7 @@ public class SavefileUtils {
      * 在app启动时, 创建import文件夹, 便于理解
      */
     public static void makeEmptyImportFolder() {
-        File externalFilesDir = appContext.getExternalFilesDir(null);
+        File externalFilesDir = appContext.getExternalCacheDir();
         assert externalFilesDir != null;
         File importDir = new File(externalFilesDir.getPath() + "/" + IMPORT_FOLDER_NAME + "/");
         //noinspection ResultOfMethodCallIgnored
@@ -155,7 +186,7 @@ public class SavefileUtils {
      */
     public static boolean importSavefiles(final Player player) {
         boolean imported = false;
-        File externalFilesDir = appContext.getExternalFilesDir(null);
+        File externalFilesDir = appContext.getExternalCacheDir();
         assert externalFilesDir != null;
         File importDir = new File(externalFilesDir.getPath() + "/" + IMPORT_FOLDER_NAME + "/");
         final Collection<File> savefileCollection = FileUtils.listFiles(importDir, new String[]{"rpgsave"}, false);
@@ -210,7 +241,7 @@ public class SavefileUtils {
      * clean the import dir
      */
     public static void cleanImportDir() {
-        File externalFilesDir = appContext.getExternalFilesDir(null);
+        File externalFilesDir = appContext.getExternalCacheDir();
         assert externalFilesDir != null;
         File importDir = new File(externalFilesDir.getPath() + "/" + IMPORT_FOLDER_NAME + "/");
         if (importDir.exists()) {
@@ -224,7 +255,7 @@ public class SavefileUtils {
     }
 
     public static void deleteImportDir() {
-        File externalFilesDir = appContext.getExternalFilesDir(null);
+        File externalFilesDir = appContext.getExternalCacheDir();
         assert externalFilesDir != null;
         File importDir = new File(externalFilesDir.getPath() + "/" + IMPORT_FOLDER_NAME + "/");
         if (importDir.exists()) {
