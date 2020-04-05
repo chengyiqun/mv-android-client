@@ -4,9 +4,12 @@ import android.content.Context;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.ValueCallback;
+import android.webkit.WebStorage;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.DirectoryFileFilter;
@@ -34,6 +37,7 @@ public class SavefileUtils {
 
     /**
      * 在Application类中初始化上下文
+     *
      * @param appContext 传入的上下文对象
      */
     public static void setAppContext(Context appContext) {
@@ -42,6 +46,7 @@ public class SavefileUtils {
 
     /**
      * export android rpgmv savefiles into private folder
+     *
      * @param player webView player
      */
     public static void exportSavefiles(Player player) {
@@ -80,10 +85,12 @@ public class SavefileUtils {
             }
         });
     }
+
     /**
      * 把localStorage的存档写入sd卡的app私有目录 /sdcard/Android/xxx.xxx.xxx/file/export/年月日时分秒/xxx.rpgsave
+     *
      * @param fileSimpleName 文件名
-     * @param content 文件内容
+     * @param content        文件内容
      */
     private static void writeSaveFiles(String dateStr, String fileSimpleName, String content) {
         // String to file
@@ -117,7 +124,7 @@ public class SavefileUtils {
         if (files.size() > num) {
             Iterator<File> filesIt = files.iterator();
             filesIt.next();
-            for (int i = 1,until = files.size() - num; i < until; i++) {
+            for (int i = 1, until = files.size() - num; i < until; i++) {
                 File file = filesIt.next();
                 try {
                     FileUtils.forceDelete(file);
@@ -143,45 +150,57 @@ public class SavefileUtils {
     /**
      * importSaveFile from app private dir
      * just supported since android 4.4
+     *
      * @param player webViewPlayer
      */
-    public static boolean importSavefiles(Player player) {
+    public static boolean importSavefiles(final Player player) {
         boolean imported = false;
         File externalFilesDir = appContext.getExternalFilesDir(null);
         assert externalFilesDir != null;
         File importDir = new File(externalFilesDir.getPath() + "/" + IMPORT_FOLDER_NAME + "/");
         final Collection<File> savefileCollection = FileUtils.listFiles(importDir, new String[]{"rpgsave"}, false);
         if (savefileCollection.size() > 0) {
-            for (File file : savefileCollection) {
-                char[] chars = file.getName().toCharArray();
-                if (chars[0] >= 'a' && chars[0] <= 'z') {
-                    chars[0] = (char) (chars[0] - 32);
-                }
-                final String key = appContext.getString(R.string.LocalStorageKeyPrefix) + " " + new String(chars).replace(appContext.getString(R.string.saveFileSuffix), "");
-                String content = "";
-                try {
-                    content = FileUtils.readFileToString(file, "UTF-8");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (!"".equals(content)) {
-                    // 写入 localStorage
-                    String script = "javascript:" +
-                            "(function loadLocalStore(){\n" +
-                                "localStorage.setItem(\"" + key + "\",\"" + content + "\")\n"
-                            +
-                                "return 'OK'\n"
-                            +
-                            "})()";
-                    player.evaluateJavascript(script, new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String value) {
-                            Log.i(TAG, value);
-                            Toast.makeText(appContext, key + appContext.getString(R.string.loadComplete), Toast.LENGTH_SHORT).show();
+            // 导入前清空
+            player.evaluateJavascript("javascript:(function(){\n" +
+                    "localStorage.clear()\n" +
+                    "return 'OK'\n" +
+                    "})()", new ValueCallback<String>() {
+                @Override
+                public void onReceiveValue(String value) {
+                    Snackbar.make(player.getView(), appContext.getString(R.string.clear_save_file_msg), 1000).show();
+                    for (File file : savefileCollection) {
+                        char[] chars = file.getName().toCharArray();
+                        if (chars[0] >= 'a' && chars[0] <= 'z') {
+                            chars[0] = (char) (chars[0] - 32);
                         }
-                    });
+                        final String key = appContext.getString(R.string.LocalStorageKeyPrefix) + " " + new String(chars).replace(appContext.getString(R.string.saveFileSuffix), "");
+                        String content = "";
+                        try {
+                            content = FileUtils.readFileToString(file, "UTF-8");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        if (!"".equals(content)) {
+                            // 写入 localStorage
+                            String script = "javascript:" +
+                                    "(function loadLocalStore(){\n" +
+                                    "localStorage.setItem(\"" + key + "\",\"" + content + "\")\n"
+                                    +
+                                    "return 'OK'\n"
+                                    +
+                                    "})()";
+                            player.evaluateJavascript(script, new ValueCallback<String>() {
+                                @Override
+                                public void onReceiveValue(String value) {
+                                    Log.i(TAG, value);
+                                    Snackbar.make(player.getView(), key + appContext.getString(R.string.loadComplete), 1000).show();
+                                }
+                            });
+                        }
+                    }
                 }
-            }
+            });
+
             imported = true;
         }
         return imported;

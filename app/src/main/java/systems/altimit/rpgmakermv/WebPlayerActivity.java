@@ -156,13 +156,13 @@ public class WebPlayerActivity extends Activity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (gameLoaded.get()) {
                 if (SavefileUtils.importSavefiles(mPlayer)) {
-                    SavefileUtils.cleanImportDir();
                     Dialog dialog = new AlertDialog.Builder(this)
                             .setTitle(getString(R.string.complete))
                             .setMessage(getString(R.string.whetherRestartGame))
                             .setPositiveButton(getString(R.string.yes), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
+                                    SavefileUtils.cleanImportDir();
                                     // restart Activity
                                     Intent intent = new Intent(getApplicationContext(), WebPlayerActivity.class);
                                     intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
