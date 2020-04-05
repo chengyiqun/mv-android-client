@@ -64,6 +64,15 @@ android {
             buildType.buildConfigField "String", "APP_NAME", "\"${myAppName}\""
             buildType.manifestPlaceholders = [my_app_name: "${myAppName}"]
         }
+
+        release{
+            // true - 打开混淆
+            minifyEnabled true
+            // true - 打开资源压缩
+            shrinkResources true
+            // 用于设置Proguard的规划路径；
+            proguardFiles getDefaultProguardFile('proguard-android.txt'),'proguard-rules.pro'
+        }
     }
 
     flavorDimensions "mv_android_client"
