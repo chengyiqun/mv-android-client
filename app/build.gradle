@@ -86,8 +86,8 @@ android {
         // WARNING: As of February 2017 Crosswalk is no longer maintained https://crosswalk-project.org/blog/crosswalk-final-release.html
         zz_crosswalk {
             dimension "mv_android_client"
-            minSdkVersion 19  // 16
-            targetSdkVersion 23
+            minSdkVersion 16  // 16
+            targetSdkVersion 21
         }
     }
 }

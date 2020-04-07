@@ -89,16 +89,16 @@ public class WebPlayerActivity extends Activity {
 
         mSystemUiVisibility = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN;
-        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
-        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-        mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_FULLSCREEN;
+            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;
+            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            mSystemUiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                mSystemUiVisibility |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+            }
         }
-//        }
 
         display = getWindowManager().getDefaultDisplay();
 
