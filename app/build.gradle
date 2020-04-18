@@ -18,10 +18,10 @@ apply plugin: 'com.android.application'
 
 // 统一管控app信息
 def VOLUME_AS_ARROW     = false // 音量控制上下
-def myAppName = "蒸汽之都的少女侦探"
-def myApplicationId = "rpgmv.detective.girl.of.the.steam.city"
-def myVersionCode = 1
-def myVersionName = "1.0"
+def myAppName = "御神巫女IF1.21！"
+def myApplicationId = "rpgmv.ifmiko.miko"
+def myVersionCode = 3
+def myVersionName = "1.21"
 // 存档导出保留多少份
 def saveFileExportNum = 32
 

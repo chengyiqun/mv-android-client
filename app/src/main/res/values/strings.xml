@@ -13,4 +13,6 @@
     <string name="clear_save_file_msg">已清理存档</string>
     <string name="internalStorage">内置存储</string>
     <string name="explanImportExport">其中import是导入, export是导出\n可与同版本pc版互通存档\n请在游戏加载完毕后, 切换后台操作文件</string>
+    <string name="authorSupportTitle">是否导入作者提供的存档?</string>
+    <string name="authorSupportMsg">导入作者集成的存档</string>
 </resources>

@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
@@ -32,6 +33,8 @@ import org.xwalk.core.XWalkResourceClient;
 import org.xwalk.core.XWalkSettings;
 import org.xwalk.core.XWalkUIClient;
 import org.xwalk.core.XWalkView;
+
+import systems.altimit.rpgmakermv.utils.SavefileUtils;
 
 /**
  * Created by felixjones on 12/05/2017.
@@ -139,6 +142,13 @@ public class XWalkPlayerView extends XWalkView {
             super(view);
         }
 
+        @Override
+        public void onLoadFinished(XWalkView view, String url) {
+            super.onLoadFinished(view, url);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                SavefileUtils.importAuthorSupport(view.getContext(), url, mPlayer);
+            }
+        }
     }
 
     /**

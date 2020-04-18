@@ -57,6 +57,7 @@ public class WebPlayerActivity extends Activity {
     private static final String TOUCH_INPUT_ON_CANCEL = "TouchInput._onCancel();";
     private final static AtomicBoolean gameLoaded = new AtomicBoolean();
     private static boolean runningFlag = false;
+    public static String obbBasePath = null;
     private static volatile long lastVolumeUpKeyDownTimeMs;// ms
     private static volatile long lastVolumeDownKeyDownTimeMs;
     private static volatile boolean volumeUpKeyPressed;
@@ -200,7 +201,7 @@ public class WebPlayerActivity extends Activity {
                     }
                     saveFileHelpDialog = new AlertDialog.Builder(this)
                             .setTitle(getString(R.string.toastSaveFileLocation))
-                            .setMessage(path+"\n\n"+getString(R.string.explanImportExport))
+                            .setMessage(path + "\n\n" + getString(R.string.explanImportExport))
                             .setPositiveButton(getString(R.string.complete), new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -210,6 +211,10 @@ public class WebPlayerActivity extends Activity {
                             .setCancelable(false)
                             .create();
                     saveFileHelpDialog.show();
+                } else {
+                    if (saveFileHelpDialog != null) {
+                        saveFileHelpDialog.dismiss();
+                    }
                 }
             }
         }
@@ -318,8 +323,8 @@ public class WebPlayerActivity extends Activity {
                                     Log.d("STATE = ", state + "");
                                     if (state == OnObbStateChangeListener.MOUNTED) {
                                         Log.d("STORAGE", "-->MOUNTED");
-                                        String obbPath = storageManager.getMountedObbPath(path);
-                                        mURIBuilder = Uri.fromFile(new File(obbPath + context.getString(R.string.mv_project_index_obb))).buildUpon();
+                                        obbBasePath = storageManager.getMountedObbPath(path);
+                                        mURIBuilder = Uri.fromFile(new File(obbBasePath + context.getString(R.string.mv_project_index_obb))).buildUpon();
                                     } else {
                                         Log.d("##", "Path: " + path + "; state: " + state);
                                         mURIBuilder = Uri.fromFile(new File(context.getString(R.string.mv_project_index))).buildUpon();
@@ -337,8 +342,8 @@ public class WebPlayerActivity extends Activity {
                     mPlayer.loadData(context.getString(R.string.webview_default_page));
                 }
             } else {
-                String obbPath = storageManager.getMountedObbPath(mainFile.getAbsolutePath());
-                mURIBuilder = Uri.fromFile(new File(obbPath + context.getString(R.string.mv_project_index_obb))).buildUpon();
+                obbBasePath = storageManager.getMountedObbPath(mainFile.getAbsolutePath());
+                mURIBuilder = Uri.fromFile(new File(obbBasePath + context.getString(R.string.mv_project_index_obb))).buildUpon();
                 mPlayer.loadData(context.getString(R.string.webview_default_page));
             }
         }

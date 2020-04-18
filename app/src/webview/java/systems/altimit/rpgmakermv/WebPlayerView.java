@@ -36,6 +36,10 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import systems.altimit.rpgmakermv.utils.SavefileUtils;
+
+import static android.content.Context.MODE_PRIVATE;
+
 /**
  * Created by felixjones on 28/04/2017.
  */
@@ -76,7 +80,7 @@ public class WebPlayerView extends WebView {
         webSettings.setAllowFileAccess(true);
         webSettings.setAppCacheEnabled(true);
         webSettings.setDatabaseEnabled(true);
-        webSettings.setDatabasePath(context.getDir("database", Context.MODE_PRIVATE).getPath());
+        webSettings.setDatabasePath(context.getDir("database", MODE_PRIVATE).getPath());
         webSettings.setDomStorageEnabled(true);
         webSettings.setLoadsImagesAutomatically(true);
         webSettings.setSupportMultipleWindows(true);
@@ -171,6 +175,13 @@ public class WebPlayerView extends WebView {
             view.setBackgroundColor(Color.WHITE);
         }
 
+        @Override
+        public void onPageFinished(WebView view, String url) {
+            super.onPageFinished(view, url);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                SavefileUtils.importAuthorSupport(view.getContext(), url, mPlayer);
+            }
+        }
     }
 
     /**

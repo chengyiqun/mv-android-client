@@ -1,8 +1,11 @@
 package systems.altimit.rpgmakermv.utils;
 
-import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
 import android.os.Build;
 import android.util.Log;
 import android.webkit.ValueCallback;
@@ -10,7 +13,6 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDialog;
 
 import com.google.android.material.snackbar.Snackbar;
 
@@ -19,16 +21,20 @@ import org.apache.commons.io.filefilter.DirectoryFileFilter;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.Objects;
 
 import systems.altimit.rpgmakermv.BuildConfig;
 import systems.altimit.rpgmakermv.Player;
 import systems.altimit.rpgmakermv.R;
+import systems.altimit.rpgmakermv.WebPlayerActivity;
+
+import static android.content.Context.MODE_PRIVATE;
+import static systems.altimit.rpgmakermv.MyApplication.restarted;
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
 public class SavefileUtils {
@@ -143,12 +149,13 @@ public class SavefileUtils {
     /**
      * 在app启动时, 创建import文件夹, 便于理解
      */
-    public static void makeEmptyImportFolder() {
+    public static File makeEmptyImportFolder() {
         File externalFilesDir = appContext.getExternalCacheDir();
         assert externalFilesDir != null;
         File importDir = new File(externalFilesDir.getPath() + "/" + IMPORT_FOLDER_NAME + "/");
         //noinspection ResultOfMethodCallIgnored
         importDir.mkdirs();
+        return importDir;
     }
 
     /**
@@ -236,6 +243,105 @@ public class SavefileUtils {
                 FileUtils.forceDelete(importDir);
             } catch (IOException e) {
                 e.printStackTrace();
+            }
+        }
+    }
+
+    public static void importAuthorSupport(final Context context, String url,final Player mPlayer) {
+        if (url.contains("index.html")) {
+            // 初始化自带的存档
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                try {
+                    // 初始化配置
+                    final SharedPreferences mSpf = context.getSharedPreferences("globalSettings",MODE_PRIVATE);
+                    boolean embedSaveFileLoad = mSpf.getBoolean("embedSaveFileLoad", false);
+                    if (!embedSaveFileLoad) {
+                        final File importSaveFileDir = SavefileUtils.makeEmptyImportFolder();
+                        final String embedSaveFileDir;
+                        // 加载assets的情况 TODO obb的情况暂时不想写
+                        embedSaveFileDir = context.getString(R.string.mv_project_index).replace("//android_asset/","")
+                                .replace("index.html", "") + "save";
+                        final AssetManager assetManager = context.getAssets();
+                        final String[] filenameListByAsstes = assetManager.list(embedSaveFileDir);
+                        // TODO obb找到存档的情况, 使用或者关系
+                        if (filenameListByAsstes != null && filenameListByAsstes.length > 0) {
+                            Dialog dialog = new AlertDialog.Builder(context)
+                                    .setTitle(context.getString(R.string.authorSupportTitle))
+                                    .setMessage(context.getString(R.string.authorSupportMsg))
+                                    .setPositiveButton(context.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            // 拷贝文件
+                                            // assets
+                                            if (filenameListByAsstes != null && filenameListByAsstes.length > 0) {
+                                                for (String s : filenameListByAsstes) {
+                                                    try {
+                                                        InputStream open = assetManager.open(embedSaveFileDir + '/' + s);
+                                                        FileUtils.copyInputStreamToFile(open, new File(importSaveFileDir.getPath() + '/' + s));
+                                                    } catch (IOException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                }
+                                            }
+                                            // TODO 拷贝obb的存档文件
+
+
+                                            if (SavefileUtils.importSavefiles(mPlayer)) {
+                                                Dialog dialog1 = new AlertDialog.Builder(context)
+                                                        .setTitle(context.getString(R.string.complete))
+                                                        .setMessage(context.getString(R.string.whetherRestartGame))
+                                                        .setPositiveButton(context.getString(R.string.yes), new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                SharedPreferences.Editor editor = mSpf.edit();
+                                                                editor.putBoolean("embedSaveFileLoad",true);
+                                                                editor.apply();
+                                                                dialog.dismiss();
+                                                                restarted = true;
+                                                                SavefileUtils.cleanImportDir();
+                                                                // restart Activity
+                                                                Intent intent = new Intent(context, WebPlayerActivity.class);
+                                                                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                                context.startActivity(intent);
+                                                            }
+                                                        })
+                                                        .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                                            @Override
+                                                            public void onDismiss(DialogInterface dialog) {
+                                                                dialog.dismiss();
+                                                            }
+                                                        })
+                                                        .setNegativeButton(context.getString(R.string.no), new DialogInterface.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(DialogInterface dialog, int which) {
+                                                                dialog.dismiss();
+                                                            }
+                                                        }).create();
+                                                dialog1.show();
+                                            }
+                                        }
+                                    })
+                                    .setOnDismissListener(new DialogInterface.OnDismissListener() {
+                                        @Override
+                                        public void onDismiss(DialogInterface dialog) {
+                                            dialog.dismiss();
+                                        }
+                                    })
+                                    .setNegativeButton(context.getString(R.string.no), new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialog, int which) {
+                                            SharedPreferences.Editor editor = mSpf.edit();
+                                            editor.putBoolean("embedSaveFileLoad",true);
+                                            editor.apply();
+                                            dialog.dismiss();
+                                        }
+                                    }).create();
+                            dialog.show();
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
